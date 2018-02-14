@@ -28,6 +28,7 @@ func main() {
 		httpGtw.GatewayWithControllers(
 			httpGtwCtrls.NewV1(metaCrawlSvc),
 		),
+		httpGtw.GatewayWithLogger(logger),
 	)
 
 	err = httpGtw.Start()
