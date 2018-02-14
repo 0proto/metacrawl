@@ -25,9 +25,15 @@ debug: build-dev
 test:
 	go test \
 		-cover \
-		$$(dep -no-vendor)
+		./domain/...\
+		./services/...\
+		./transformers/...\
+		.
 
 lint:
 	golint \
 		-set_exit_status \
-		$$(dep -no-vendor)
+		./domain/...\
+		./services/...\
+		./transformers/...\
+		.
