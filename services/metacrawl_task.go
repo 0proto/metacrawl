@@ -19,6 +19,7 @@ import (
 )
 
 const (
+	TaskNotStarted = "not started"
 	TaskInProgress = "in progress"
 	TaskCompleted  = "completed"
 )
@@ -26,6 +27,7 @@ const (
 // MCTask is a MetaCrawl task implemetation
 type MCTask struct {
 	status           string
+	statusMutex      *sync.RWMutex
 	timeout          time.Duration
 	httpClient       *http.Client
 	resultBuffer     *bytes.Buffer
@@ -67,6 +69,8 @@ func NewMetaCrawlTask(
 		resultBuffer:     bytes.NewBuffer(nil),
 		resultMutex:      &sync.Mutex{},
 		metaAttrRegistry: metaAttributes,
+		status:           TaskNotStarted,
+		statusMutex:      &sync.RWMutex{},
 	}
 }
 
@@ -205,7 +209,7 @@ func (mt *MCTask) Process() error {
 	// write csv header
 	mt.appendToResult(csvWriter, []string{"HTTP Status Code", "URL", "Page Title", "Meta Description", "Meta Keywords", "Og:image"})
 
-	mt.status = TaskInProgress
+	mt.setStatus(TaskInProgress)
 
 	var wg sync.WaitGroup
 	wg.Add(len(mt.urls))
@@ -218,16 +222,29 @@ func (mt *MCTask) Process() error {
 	wg.Wait()
 	csvWriter.Flush()
 
-	mt.status = TaskCompleted
+	mt.setStatus(TaskCompleted)
+
 	return nil
 }
 
+func (mt *MCTask) setStatus(status string) {
+	mt.statusMutex.Lock()
+	mt.status = status
+	mt.statusMutex.Unlock()
+}
+
 func (mt *MCTask) Render() []byte {
-	return mt.resultBuffer.Bytes()
+	mt.resultMutex.Lock()
+	resultBytes := mt.resultBuffer.Bytes()
+	mt.resultMutex.Unlock()
+	return resultBytes
 }
 
 func (mt *MCTask) Status() string {
-	return mt.status
+	mt.statusMutex.RLock()
+	status := mt.status
+	mt.statusMutex.RUnlock()
+	return status
 }
 
 // MetaCrawlTask is an interface describing MetaCrawl task
