@@ -1,12 +1,12 @@
 package controllers
 
 import (
-	"github.com/0proto/metacrawl/services"
+	"github.com/0proto/metacrawl/services/metacrawl"
 	"github.com/go-chi/chi"
 )
 
 // NewV1 creates a new instance of V1.
-func NewV1(metaCrawlService services.MetaCrawlSvc) (ctrl *V1) {
+func NewV1(metaCrawlService metacrawl.Svc) (ctrl *V1) {
 	ctrl = &V1{
 		metaCrawlSvc: metaCrawlService,
 	}
@@ -15,7 +15,7 @@ func NewV1(metaCrawlService services.MetaCrawlSvc) (ctrl *V1) {
 
 // V1 is a HTTP gateway controller that is responsible for processing calls to Data Loader v1 endpoints
 type V1 struct {
-	metaCrawlSvc services.MetaCrawlSvc
+	metaCrawlSvc metacrawl.Svc
 }
 
 // Register sets up controller routes in the router.

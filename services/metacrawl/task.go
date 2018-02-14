@@ -1,4 +1,4 @@
-package services
+package metacrawl
 
 import (
 	"bytes"
@@ -19,9 +19,12 @@ import (
 )
 
 const (
+	// TaskNotStarted is a custom task status
 	TaskNotStarted = "not started"
+	// TaskInProgress is a custom task status
 	TaskInProgress = "in progress"
-	TaskCompleted  = "completed"
+	// TaskCompleted is a custom task status
+	TaskCompleted = "completed"
 )
 
 // MCTask is a MetaCrawl task implemetation
@@ -32,14 +35,14 @@ type MCTask struct {
 	httpClient       *http.Client
 	resultBuffer     *bytes.Buffer
 	resultMutex      *sync.Mutex
-	metaCrawlSvc     MetaCrawlSvc
+	metaCrawlSvc     Svc
 	metaAttrRegistry map[string][]string
 	urls             []string
 }
 
 // NewMetaCrawlTask is a MetaCrawlTask constructor
 func NewMetaCrawlTask(
-	mCrawl MetaCrawlSvc,
+	mCrawl Svc,
 	urls []string,
 	timeout time.Duration,
 ) *MCTask {
@@ -103,13 +106,9 @@ func parseMetaAttributes(
 
 func (mt *MCTask) parseMetaTags(body io.Reader) []string {
 	tokenizer := html.NewTokenizer(body)
-
 	var title string
-
 	metaResult := make(map[string]string)
-
 	complete := false
-
 	for {
 		if !complete {
 			tokenType := tokenizer.Next()
@@ -189,6 +188,7 @@ func (mt *MCTask) processURL(csvWriter *csv.Writer, rawURL string) {
 	body := resp.Body
 	defer body.Close()
 
+	// convert body to utf-8 charset
 	utf8Body, err := charset.NewReader(body, resp.Header.Get("Content-Type"))
 	if err != nil {
 		return
@@ -233,6 +233,7 @@ func (mt *MCTask) setStatus(status string) {
 	mt.statusMutex.Unlock()
 }
 
+// Render returns csv data from result buffer
 func (mt *MCTask) Render() []byte {
 	mt.resultMutex.Lock()
 	resultBytes := mt.resultBuffer.Bytes()
@@ -240,6 +241,7 @@ func (mt *MCTask) Render() []byte {
 	return resultBytes
 }
 
+// Status returns information about task status
 func (mt *MCTask) Status() string {
 	mt.statusMutex.RLock()
 	status := mt.status
@@ -247,8 +249,8 @@ func (mt *MCTask) Status() string {
 	return status
 }
 
-// MetaCrawlTask is an interface describing MetaCrawl task
-type MetaCrawlTask interface {
+// Task is an interface describing MetaCrawl task
+type Task interface {
 	Status() string
 	Process() error
 	Render() []byte

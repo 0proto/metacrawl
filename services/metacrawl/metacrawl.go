@@ -1,4 +1,4 @@
-package services
+package metacrawl
 
 import (
 	"sync"
@@ -50,22 +50,30 @@ func (m *MetaCrawl) RateLimitterForDomain(domainName string) *time.Ticker {
 	return newLimitter
 }
 
-func (m *MetaCrawl) TaskByID(taskID string) MetaCrawlTask {
+// TaskByID returns task instance by taskID
+func (m *MetaCrawl) TaskByID(taskID string) Task {
 	if task, ok := m.tasks.Load(taskID); ok {
-		return task.(MetaCrawlTask)
+		return task.(Task)
 	}
 
 	return nil
 }
 
+// DeleteTaskByID deletes task by taskID
+func (m *MetaCrawl) DeleteTaskByID(taskID string) {
+	m.tasks.Delete(taskID)
+}
+
+// Logger returns common service logger
 func (m *MetaCrawl) Logger() *zap.Logger {
 	return m.logger
 }
 
-// MetaCrawlSvc is a MetaCrawl service interface
-type MetaCrawlSvc interface {
+// Svc is a MetaCrawl service interface
+type Svc interface {
 	Logger() *zap.Logger
 	AddTask(urls []string) string
-	TaskByID(string) MetaCrawlTask
+	TaskByID(string) Task
+	DeleteTaskByID(string)
 	RateLimitterForDomain(string) *time.Ticker
 }

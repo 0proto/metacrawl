@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/0proto/metacrawl/services"
+	"github.com/0proto/metacrawl/services/metacrawl"
 	"github.com/go-chi/chi"
 )
 
@@ -40,9 +40,14 @@ func (v1 *V1) responseCSV(w http.ResponseWriter, name string, data []byte, code 
 	w.Write(data)
 }
 
-// GetTask handler
+// GetTask is a get task http handler
 func (v1 *V1) GetTask(w http.ResponseWriter, r *http.Request) {
 	taskID := chi.URLParam(r, "taskID")
+	shouldDeleteTask := false
+	deleteParam := r.URL.Query().Get("delete")
+	if deleteParam == "1" {
+		shouldDeleteTask = true
+	}
 
 	task := v1.metaCrawlSvc.TaskByID(taskID)
 	if task == nil {
@@ -52,14 +57,19 @@ func (v1 *V1) GetTask(w http.ResponseWriter, r *http.Request) {
 
 	taskStatus := task.Status()
 	switch taskStatus {
-	case services.TaskInProgress:
+	case metacrawl.TaskInProgress:
 		v1.responseJSON(w, "task in progress", 204)
 		return
-	case services.TaskCompleted:
+	case metacrawl.TaskCompleted:
+		if shouldDeleteTask {
+			v1.metaCrawlSvc.DeleteTaskByID(taskID)
+		}
+
 		v1.responseCSV(w, taskID, task.Render(), 200)
 	}
 }
 
+// PostTask is a new task http handler
 func (v1 *V1) PostTask(w http.ResponseWriter, r *http.Request) {
 	bodyURLsRaw, err := ioutil.ReadAll(r.Body)
 	if err != nil {

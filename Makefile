@@ -7,7 +7,7 @@ all: build
 dev: lint test build-dev
 
 deps:
-	glide install
+	dep ensure
 
 build:
 	go build \

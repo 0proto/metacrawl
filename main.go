@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/0proto/metacrawl/services"
+	"github.com/0proto/metacrawl/services/metacrawl"
 	httpGtw "github.com/0proto/metacrawl/transformers/gateways/http"
 	httpGtwCtrls "github.com/0proto/metacrawl/transformers/gateways/http/controllers"
 	"go.uber.org/zap"
@@ -17,7 +17,7 @@ func main() {
 		panic("failed to initialize logger")
 	}
 
-	metaCrawlSvc := services.NewMetaCrawl(logger)
+	metaCrawlSvc := metacrawl.NewMetaCrawl(logger)
 	listener, err := net.Listen(
 		"tcp",
 		"0.0.0.0:8080",
