@@ -25,7 +25,6 @@ debug: build-dev
 test:
 	go test \
 		-cover \
-		./domain/...\
 		./services/...\
 		./transformers/...\
 		.
@@ -33,7 +32,6 @@ test:
 lint:
 	golint \
 		-set_exit_status \
-		./domain/...\
 		./services/...\
 		./transformers/...\
 		.
